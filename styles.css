@@ -1089,6 +1089,35 @@ nav.scrolled .nav-logo-img {
   box-shadow: 0 2px 8px rgba(10, 37, 64, 0.2);
 }
 
+.plano-btn-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plano-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+}
+
+.plano-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+.plano-btn.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+  box-shadow: 0 2px 8px rgba(13,43,110,0.2);
+}
+
 .select-categoria {
   display: flex;
   gap: 8px;
@@ -1306,6 +1335,25 @@ input[type=range]::-moz-range-thumb {
   text-align: center;
 }
 
+.msg-reducao {
+  background: rgba(13, 43, 110, 0.06);
+  border-left: 3px solid var(--navy);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+
+.sim-disclaimer {
+  font-size: 10px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
 .stat-label {
   display: block;
   font-size: 11px;
@@ -1321,6 +1369,88 @@ input[type=range]::-moz-range-thumb {
   font-size: 18px;
   font-weight: 900;
   color: var(--navy);
+}
+
+.highlight-stat {
+  background: rgba(204, 31, 45, 0.05);
+  border-radius: 10px;
+  padding: 8px;
+  border: 1px solid rgba(204, 31, 45, 0.15);
+}
+
+.red-value {
+  color: var(--red) !important;
+}
+
+.stat-badge {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* ── Comparar planos ── */
+.planos-comparar { margin-top: 16px; }
+
+.comparar-titulo {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.comparar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.comparar-row:hover { border-color: var(--navy); background: #f8faff; }
+
+.comparar-row.ativo {
+  border-color: var(--navy);
+  background: rgba(13, 43, 110, 0.05);
+}
+
+.comparar-nome {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.comparar-taxa {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.comparar-parcela {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--navy);
+}
+
+.comparar-parcela small {
+  font-size: 10px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-left: 2px;
 }
 
 /* ══════════════════════════════════ PLANOS ══════════════════════════════════ */

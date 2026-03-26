@@ -84,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicia estado e autoplay
   updateCarousel();
   startAutoPlay();
-  updateSim(40000);
+  renderPlanoBtns('Veículos');
+  setPlano('auto50');
 });
 
 /* Swipe para mobile */
@@ -285,60 +286,89 @@ function createChart(creditValue, prazo = 72) {
 let simMode = 'credito';
 let _simCreditValue = 40000;
 
-// Dados reais das tabelas de parcelas Porto (com redução 20% padrão até contemplação)
-const catConfig = {
-  'Veículos': { min: 25000, max: 200000, step: 1000, default: 40000, labelMin: 'R$ 25 mil', labelMax: 'R$ 200 mil' },
-  'Imóveis':  { min: 70000, max: 1000000, step: 5000, default: 200000, labelMin: 'R$ 70 mil', labelMax: 'R$ 1 M' },
-  'Pesados':  { min: 180000, max: 360000, step: 5000, default: 250000, labelMin: 'R$ 180 mil', labelMax: 'R$ 360 mil' },
+// Tabelas reais Porto — [credito, parcelaCheia]
+const TABELAS = {
+  auto50:  [[25000,600],[30000,720],[35000,840],[40000,960],[45000,1080],[50000,1200]],
+  auto72:  [[34000,566],[35000,583],[40000,666],[45000,750],[50000,833],[55000,916],[60000,1000],[65000,1083]],
+  auto80:  [[62500,921],[72500,1069],[82500,1216],[92500,1364],[102500,1511],[112500,1659],[117500,1733],[122500,1806],[125000,1843]],
+  auto90:  [[125000,1625],[130000,1690],[140000,1820],[150000,1950],[160000,2080],[170000,2210],[180000,2340],[190000,2470],[200000,2600]],
+  pesado120: [[180000,1740],[200000,1933],[220000,2126],[240000,2320],[250000,2416],[260000,2513],[280000,2706],[300000,2900],[320000,3093],[340000,3286],[350000,3383],[360000,3480]],
+  imovel200: [[70000,444],[80000,508],[90000,571],[100000,635],[110000,698],[120000,762],[130000,825],[140000,889],[150000,937],[180000,1125],[200000,1250],[220000,1375],[250000,1562],[280000,1750],[300000,1845],[400000,2460],[450000,2767],[500000,3075],[560000,3444],[600000,3645],[650000,3948],[700000,4252],[750000,4556],[800000,4860],[850000,5163],[900000,5467],[1000000,6075]],
 };
 
-function getSimPlan(n, categoria) {
-  if (categoria.includes('Imóvel') || categoria.includes('Imovel')) {
-    if (n <= 140000) return { prazo: 200, taxa: 0.25 };
-    if (n <= 280000) return { prazo: 200, taxa: 0.23 };
-    if (n <= 560000) return { prazo: 200, taxa: 0.21 };
-    return { prazo: 200, taxa: 0.195 };
-  }
-  if (categoria.includes('Pesado')) {
-    return { prazo: 120, taxa: 0.16 };
-  }
-  // Veículos
-  if (n < 34000)  return { prazo: 50, taxa: 0.20 };
-  if (n <= 65000) return { prazo: 72, taxa: 0.20 };
-  if (n <= 125000) return { prazo: 80, taxa: 0.18 };
-  return { prazo: 90, taxa: 0.17 };
+const TAXAS  = { auto50: 0.20, auto72: 0.20, auto80: 0.18, auto90: 0.17, pesado120: 0.16, imovel200: 0.22 };
+const PRAZOS = { auto50: 50,   auto72: 72,   auto80: 80,   auto90: 90,   pesado120: 120,  imovel200: 200  };
+const NOMES  = { auto50: 'Auto 50 meses', auto72: 'Auto 72 meses', auto80: 'Auto 80 meses', auto90: 'Auto 90 meses', pesado120: 'Pesado 120 meses', imovel200: 'Imóvel 200 meses' };
+
+// Planos por categoria
+const CAT_PLANOS = {
+  'Veículos': ['auto50','auto72','auto80','auto90'],
+  'Pesados':  ['pesado120'],
+  'Imóveis':  ['imovel200'],
+};
+
+let _planoAtivo = 'auto50';
+
+function renderPlanoBtns(categoria) {
+  const grupo = document.getElementById('planoBtnGroup');
+  if (!grupo) return;
+  const planos = CAT_PLANOS[categoria] || CAT_PLANOS['Veículos'];
+  grupo.innerHTML = planos.map(k =>
+    `<button class="plano-btn ${k === _planoAtivo ? 'active' : ''}" onclick="setPlano('${k}')">${PRAZOS[k]}m</button>`
+  ).join('');
+}
+
+function setPlano(key) {
+  _planoAtivo = key;
+  const rows   = TABELAS[key];
+  const midIdx = Math.floor(rows.length / 2);
+  const range  = document.getElementById('sim-range');
+  range.min = 0; range.max = rows.length - 1; range.step = 1; range.value = midIdx;
+  const fmtK = v => v >= 1000000 ? 'R$ ' + (v/1000000).toFixed(1) + 'M' : 'R$ ' + (v/1000).toFixed(0) + ' mil';
+  document.querySelector('.sim-range-labels').innerHTML =
+    `<span>${fmtK(rows[0][0])}</span><span>${fmtK(rows[rows.length-1][0])}</span>`;
+  document.querySelectorAll('.plano-btn').forEach(b => b.classList.toggle('active', b.textContent === PRAZOS[key]+'m'));
+  updateSim(midIdx);
+}
+
+
+function fmt(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function updateSim(val) {
-  const n = parseInt(val);
+  const idx   = parseInt(val);
   const range = document.getElementById('sim-range');
-  const min = parseInt(range.min), max = parseInt(range.max);
-  const pct = ((n - min) / (max - min)) * 100;
+  const max   = parseInt(range.max);
+  const pct   = (idx / max) * 100;
   range.style.background = `linear-gradient(to right, #3b82f6 0%, #1d4ed8 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`;
 
-  const categoria = document.querySelector('.cat-btn.active')?.textContent?.trim() || 'Veículos';
+  const planoKey     = _planoAtivo;
+  const row          = TABELAS[planoKey][idx] || TABELAS[planoKey][0];
+  const credito      = row[0];
+  const parcelaCheia = row[1];
+  const prazo        = PRAZOS[planoKey];
+  const taxa         = TAXAS[planoKey];
 
+  _simCreditValue = credito;
+  document.getElementById('sim-num').textContent = credito.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+
+  const msgEl = document.getElementById('msgReducao');
   if (simMode === 'parcela') {
-    document.getElementById('sim-num').textContent = n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-    // Inverso: crédito ≈ parcela / 0.80 * 72 / 1.20 (base Veículos 72m)
-    const credito = Math.round((n / 0.80) * 72 / 1.20);
-    _simCreditValue = credito;
-    document.getElementById('stat-parcela').textContent = 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('stat-prazo').textContent = '72 meses';
-    document.getElementById('stat-taxa').textContent = '20% total';
-    createChart(credito, 72);
+    const reducao = planoKey === 'imovel200' ? 0.25 : 0.20;
+    document.getElementById('stat-parcela').textContent = fmt(Math.round(parcelaCheia * (1 - reducao)));
+    if (msgEl) {
+      msgEl.style.display = 'block';
+      msgEl.innerHTML = `Parcela com <strong>${reducao * 100}% de redução</strong> padrão aplicada — válida até a contemplação.`;
+    }
   } else {
-    document.getElementById('sim-num').textContent = n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-    _simCreditValue = n;
-    const plan = getSimPlan(n, categoria);
-    // Parcela com redução de 20% padrão (valor pago até a contemplação)
-    const parcelaCheia = n * (1 + plan.taxa) / plan.prazo;
-    const parcelaReducao = parcelaCheia * 0.80;
-    document.getElementById('stat-parcela').textContent = 'R$ ' + parcelaReducao.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('stat-prazo').textContent = plan.prazo + ' meses';
-    document.getElementById('stat-taxa').textContent = (plan.taxa * 100).toFixed(1) + '% total';
-    createChart(n, plan.prazo);
+    document.getElementById('stat-parcela').textContent = fmt(parcelaCheia);
+    if (msgEl) msgEl.style.display = 'none';
   }
+
+  document.getElementById('stat-prazo').textContent = NOMES[planoKey];
+  document.getElementById('stat-taxa').textContent  = (taxa * 100).toFixed(0) + '% total';
+  createChart(credito, prazo);
 }
 
 function simularAgora() {
@@ -358,34 +388,18 @@ function setTab(el, mode) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   simMode = mode;
-  const labelEl = document.getElementById('sim-label-text');
-  const range = document.getElementById('sim-range');
-  if (mode === 'parcela') {
-    labelEl.textContent = 'Escolha o valor da parcela:';
-    range.min = 200; range.max = 5000; range.step = 50; range.value = 500;
-    document.querySelector('.sim-range-labels').innerHTML = '<span>R$ 200</span><span>R$ 5.000</span>';
-    updateSim(500);
-  } else {
-    const cat = document.querySelector('.cat-btn.active')?.textContent?.trim() || 'Veículos';
-    const cfg = catConfig[cat] || catConfig['Veículos'];
-    labelEl.textContent = 'Escolha o valor do crédito:';
-    range.min = cfg.min; range.max = cfg.max; range.step = cfg.step; range.value = cfg.default;
-    document.querySelector('.sim-range-labels').innerHTML = `<span>${cfg.labelMin}</span><span>${cfg.labelMax}</span>`;
-    updateSim(cfg.default);
-  }
+  // Slider não muda — apenas recalcula a parcela exibida
+  updateSim(document.getElementById('sim-range').value);
 }
 
 function setCat(el) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  if (simMode === 'credito') {
-    const cat = el.textContent.trim();
-    const cfg = catConfig[cat] || catConfig['Veículos'];
-    const range = document.getElementById('sim-range');
-    range.min = cfg.min; range.max = cfg.max; range.step = cfg.step; range.value = cfg.default;
-    document.querySelector('.sim-range-labels').innerHTML = `<span>${cfg.labelMin}</span><span>${cfg.labelMax}</span>`;
-    updateSim(cfg.default);
-  }
+  const cat = el.textContent.trim();
+  const primeiroPlaono = (CAT_PLANOS[cat] || CAT_PLANOS['Veículos'])[0];
+  _planoAtivo = primeiroPlaono;
+  renderPlanoBtns(cat);
+  setPlano(primeiroPlaono);
 }
 
 /* ─── FORMULÁRIO ─── */

@@ -79,10 +79,14 @@
               </div>
             </div>
             <div class="sim-section">
+              <label class="sim-section-label">Escolha o plano</label>
+              <div class="plano-btn-group" id="planoBtnGroup"></div>
+            </div>
+            <div class="sim-section">
               <label class="sim-section-label">Modo de simulação</label>
               <div class="tab-group">
-                <button class="tab-btn" onclick="setTab(this, 'parcela')">Por Parcela</button>
-                <button class="tab-btn active" onclick="setTab(this, 'credito')">Por Crédito</button>
+                <button class="tab-btn active" id="tabCredito" onclick="setTab(this,'credito')">Por Crédito</button>
+                <button class="tab-btn" id="tabParcela" onclick="setTab(this,'parcela')">Por Parcela</button>
               </div>
             </div>
             <div class="sim-section">
@@ -115,14 +119,15 @@
               </div>
             </div>
             <div class="chart-container"><canvas id="simChart"></canvas></div>
-            <div class="chart-stats">
-              <div class="chart-stat"><span class="stat-label">Parcela estimada</span><span class="stat-value"
-                  id="stat-parcela">R$ 555,00</span></div>
-              <div class="chart-stat"><span class="stat-label">Prazo</span><span class="stat-value"
-                  id="stat-prazo">72 meses</span></div>
-              <div class="chart-stat"><span class="stat-label">Taxa admin.</span><span class="stat-value"
-                  id="stat-taxa">15% total</span></div>
+            <div id="msgReducao" class="msg-reducao" style="display:none">
+              Parcela com <strong>20% de redução</strong> padrão aplicada — válida até a contemplação.
             </div>
+            <div class="chart-stats">
+              <div class="chart-stat"><span class="stat-label">Parcela estimada</span><span class="stat-value" id="stat-parcela">R$ 960,00</span></div>
+              <div class="chart-stat"><span class="stat-label">Plano</span><span class="stat-value" id="stat-prazo">Auto 50 meses</span></div>
+              <div class="chart-stat"><span class="stat-label">Taxa admin.</span><span class="stat-value" id="stat-taxa">20% total</span></div>
+            </div>
+            <p class="sim-disclaimer">* Simulação meramente ilustrativa. Valores, parcelas e prazos estão sujeitos à disponibilidade de cartas e grupos no momento da contratação. As condições definitivas serão confirmadas pelo consultor responsável.</p>
           </div>
         </div>
         </div>
